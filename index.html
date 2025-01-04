@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timezone calculator!</title>
+    <title>Time Zone Calculator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -35,7 +35,7 @@
             font-size: 1rem;
             font-weight: bold;
         }
-        input {
+        select, input {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -66,22 +66,42 @@
 <body>
     <div class="container">
         <h1>Time Zone Calculator</h1>
-        <label for="time">Enter time in EST (HH:MM):</label>
-        <input type="time" id="time" required>
+        <label for="time">Enter time:</label>
+        <input type="text" id="time" placeholder="e.g., 2:30 PM" required>
+        <label for="timezone">Select your time zone:</label>
+        <select id="timezone">
+            <option value="-5">EST (Eastern Standard Time)</option>
+            <option value="0">GMT (Greenwich Mean Time)</option>
+            <option value="1">CET (Central European Time)</option>
+            <option value="5.5">IST (Indian Standard Time)</option>
+        </select>
         <button onclick="calculateTime()">Convert to Germany Time</button>
         <div class="result" id="result"></div>
     </div>
 
     <script>
         function calculateTime() {
-            const timeInput = document.getElementById('time').value;
-            if (!timeInput) {
-                document.getElementById('result').textContent = "Please enter a valid time.";
+            const timeInput = document.getElementById('time').value.trim();
+            const timezoneOffset = parseFloat(document.getElementById('timezone').value);
+
+            if (!timeInput || !/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.test(timeInput)) {
+                document.getElementById('result').textContent = "Please enter a valid time in the format HH:MM AM/PM.";
                 return;
             }
 
-            const [hours, minutes] = timeInput.split(":").map(Number);
-            let germanHours = (hours + 6) % 24;
+            const [_, hour, minute, period] = timeInput.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+            let hours = parseInt(hour, 10);
+            const minutes = parseInt(minute, 10);
+
+            // Convert 12-hour format to 24-hour format
+            if (period.toUpperCase() === "PM" && hours !== 12) hours += 12;
+            if (period.toUpperCase() === "AM" && hours === 12) hours = 0;
+
+            // Convert to Germany Time (CET)
+            const germanTimeOffset = 1; // CET is UTC+1
+            const utcHours = (hours - timezoneOffset + 24) % 24; // Convert to UTC
+            const germanHours = (utcHours + germanTimeOffset) % 24;
+
             const paddedHours = germanHours.toString().padStart(2, '0');
             const paddedMinutes = minutes.toString().padStart(2, '0');
 
